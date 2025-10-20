@@ -1,6 +1,6 @@
 # vibe-coded
 
-A collection of educational games and interactive applications built with AI assistance, demonstrating various programming languages and frameworks.
+A collection of educational games, interactive applications, and productivity tools built with AI assistance, demonstrating various programming languages and frameworks.
 
 ## Projects
 
@@ -14,6 +14,8 @@ A collection of educational games and interactive applications built with AI ass
 ### 🎵 Music
 - **[Win32 Happy Birthday](music/win32_happy_birthday/)** - Windows MIDI player in C
 
+### 🛠️ Productivity
+- **[PowerPoint Agent](productivity/powerpoint-agent/)** - Marp-based presentation creator with LLM agent support
 
 Each project is self-contained. Navigate to any project directory and follow its README for specific instructions.
 

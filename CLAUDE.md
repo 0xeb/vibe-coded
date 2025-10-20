@@ -14,8 +14,10 @@ vibe-coded/
 │   ├── flappybird/     # Cross-platform Flappy Bird clone (Python/pygame and HTML5/JS)
 │   ├── tictactoe/      # Tic Tac Toe implementations (Python/pygame and C#)
 │   └── piano-kids/     # Educational piano game (HTML5 standalone)
-└── music/
-    └── win32_happy_birthday/  # Windows MIDI player (C with WinMM)
+├── music/
+│   └── win32_happy_birthday/  # Windows MIDI player (C with WinMM)
+└── productivity/
+    └── powerpoint-agent/  # Marp-based presentation creator with LLM agent support
 ```
 
 ## Common Development Commands
@@ -63,6 +65,28 @@ cmake --build .
 ./wi32_midi_happy_birthday.exe
 ```
 
+### PowerPoint Agent (Windows recommended)
+```bash
+cd productivity/powerpoint-agent
+
+# Install prerequisites (run in order, wait for Step 1 to complete)
+install-step1.bat  # Installs Node.js, LibreOffice, Python, etc.
+install-step2.bat  # Installs npm packages (Marp CLI, etc.)
+
+# Verify installation
+node --version
+marp --version
+where soffice  # LibreOffice (required for editable PPTX)
+
+# Generate a test presentation
+marp-pptx.bat hello.md
+# or PowerShell: .\marp-pptx.ps1 hello.md
+
+# Use with LLM agents (e.g., GitHub Copilot CLI)
+copilot --allow-all-tools
+# Then prompt: "Please load the agent-pptx.md file"
+```
+
 ## Architecture Patterns
 
 ### Game Development Patterns
@@ -93,6 +117,14 @@ All game projects follow similar architectural principles:
 - CMake-based build system
 - Platform-specific APIs (WinMM for Windows MIDI)
 - Minimal external dependencies
+
+### Productivity Tools
+
+- **Marp-based workflow**: Markdown → HTML/PDF/PPTX conversion
+- **LLM agent integration**: agent-pptx.md provides structured prompts for AI assistants
+- **Helper scripts**: Batch (.bat) and PowerShell (.ps1) wrappers for cross-shell compatibility
+- **Editable output**: LibreOffice enables `--pptx-editable` flag for fully editable PowerPoint files
+- **Folder structure**: Each presentation in its own subfolder with `images/`, `plan.md`, and source `.md` files
 
 ## Testing Approach
 
@@ -125,6 +157,14 @@ All game projects follow similar architectural principles:
 - Demonstrates low-level audio programming
 - CMake build configuration for cross-compiler support
 
+### PowerPoint Agent
+- Automates presentation creation using Marp (Markdown Presentation Ecosystem)
+- `agent-pptx.md` defines a 4-step workflow: Define → Research & Plan → Create → Generate PPTX
+- Helper scripts (`marp-pptx.bat`/`.ps1`) wrap Marp CLI with proper flags and LibreOffice PATH setup
+- Requires LibreOffice for `--pptx-editable` flag (creates fully editable PowerPoint files vs. image-only slides)
+- Critical flags: `--allow-local-files` (for images), `--pptx-editable` (for text editing in PowerPoint)
+- Designed for LLM agent automation (GitHub Copilot CLI, Claude Code, etc.)
+
 ## Development Guidelines
 
 When modifying existing games:
@@ -138,3 +178,11 @@ When adding new features:
 2. Keep entity logic separated
 3. Add keyboard shortcuts for debug features
 4. Document any new dependencies or build steps
+
+When creating presentations with powerpoint-agent:
+1. Always use the helper scripts (`marp-pptx.bat` or `.ps1`) instead of calling `marp` directly
+2. Organize each presentation in its own subfolder under `example/` or custom location
+3. Create a `plan.md` before writing the presentation markdown
+4. Store images in logical subfolders (e.g., `images/logos/`, `images/screenshots/`)
+5. Verify LibreOffice is installed and accessible via `soffice` command before generating PPTX
+6. Use Marp front matter: `marp: true`, `theme: default`, `paginate: true`, `header: ''`, `footer: ''`
