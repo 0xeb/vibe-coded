@@ -11,9 +11,11 @@ This is a collection of educational games and interactive applications demonstra
 ```
 vibe-coded/
 ├── games/
+│   ├── index.html      # Launcher page for all HTML games
 │   ├── flappybird/     # Cross-platform Flappy Bird clone (Python/pygame and HTML5/JS)
 │   ├── tictactoe/      # Tic Tac Toe implementations (Python/pygame and C#)
-│   └── piano-kids/     # Educational piano game (HTML5 standalone)
+│   ├── piano-kids/     # Educational piano game (HTML5 standalone)
+│   └── sliding-puzzle/ # Number sliding puzzle with auto-solver (HTML5 standalone)
 ├── music/
 │   └── win32_happy_birthday/  # Windows MIDI player (C with WinMM)
 └── productivity/
@@ -21,6 +23,13 @@ vibe-coded/
 ```
 
 ## Common Development Commands
+
+### All HTML Games (Launcher)
+```bash
+cd games
+python -m http.server 8000
+# Open http://localhost:8000 for the games launcher
+```
 
 ### Flappy Bird (Python)
 ```bash
@@ -54,6 +63,13 @@ dotnet run
 ```bash
 cd games/piano-kids
 # Open piano-kids.html directly in browser
+# Or serve with: python -m http.server
+```
+
+### Sliding Puzzle
+```bash
+cd games/sliding-puzzle
+# Open sliding-puzzle.html directly in browser
 # Or serve with: python -m http.server
 ```
 
@@ -151,6 +167,13 @@ All game projects follow similar architectural principles:
 - Educational focus with numbered keys (1-6)
 - Song library with playback at variable speeds
 - Print mode for song sheets
+
+### Sliding Puzzle
+- Configurable grid sizes (3×3, 4×4, 5×5)
+- Shuffle history recording for instant reverse-solve
+- IDA* algorithm with Manhattan distance heuristic for user-modified puzzles
+- Speed-adjustable solve animation
+- Win detection with celebration modal
 
 ### Win32 Happy Birthday
 - Windows-specific MIDI implementation

@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sliding Puzzle</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #eee;
+            margin-bottom: 15px;
+            font-size: 2rem;
+        }
+
+        .size-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .size-btn {
+            padding: 8px 20px;
+            font-size: 0.95rem;
+            border: 2px solid #4a4a6a;
+            border-radius: 8px;
+            cursor: pointer;
+            background: transparent;
+            color: #aaa;
+            transition: all 0.2s;
+        }
+
+        .size-btn:hover:not(:disabled) {
+            border-color: #6a6a8a;
+            color: #fff;
+        }
+
+        .size-btn.active {
+            background: #4a4a6a;
+            color: #fff;
+            border-color: #4a4a6a;
+        }
+
+        .size-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .stats {
+            color: #aaa;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+
+        .stats span {
+            color: #4ade80;
+            font-weight: bold;
+        }
+
+        .grid {
+            display: grid;
+            gap: 6px;
+            background: #0f0f1a;
+            padding: 12px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+
+        .tile {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .tile:not(.empty):hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(255,255,255,0.2);
+        }
+
+        .tile.empty {
+            background: #1a1a2e;
+            cursor: default;
+            box-shadow: inset 0 4px 10px rgba(0,0,0,0.5);
+        }
+
+        .tile.moving {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(74, 222, 128, 0.6);
+            z-index: 10;
+        }
+
+        .buttons {
+            margin-top: 25px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        button {
+            padding: 12px 30px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            background: #4a4a6a;
+            color: white;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        button:hover:not(:disabled) {
+            background: #5a5a7a;
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .status {
+            margin-top: 15px;
+            color: #aaa;
+            font-size: 0.95rem;
+            height: 24px;
+        }
+
+        .status.solving {
+            color: #4ade80;
+        }
+
+        .speed-control {
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #aaa;
+        }
+
+        .speed-control input {
+            width: 120px;
+        }
+
+        .win-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.95);
+            padding: 40px 60px;
+            border-radius: 16px;
+            text-align: center;
+            display: none;
+            z-index: 100;
+            border: 2px solid #4ade80;
+        }
+
+        .win-message h2 {
+            color: #4ade80;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .win-message p {
+            color: #aaa;
+            margin-bottom: 20px;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            z-index: 50;
+        }
+    </style>
+</head>
+<body>
+    <h1>Sliding Puzzle</h1>
+
+    <div class="size-selector">
+        <button class="size-btn active" onclick="setSize(3)">3×3</button>
+        <button class="size-btn" onclick="setSize(4)">4×4</button>
+        <button class="size-btn" onclick="setSize(5)">5×5</button>
+    </div>
+
+    <div class="stats">Moves: <span id="moves">0</span></div>
+
+    <div class="grid" id="grid"></div>
+
+    <div class="buttons">
+        <button onclick="shuffle()" id="shuffleBtn">Shuffle</button>
+        <button onclick="startSolve()" id="solveBtn">Solve</button>
+        <button onclick="stopSolve()" id="stopBtn" style="display:none;">Stop</button>
+        <button onclick="reset()" id="resetBtn">Reset</button>
+    </div>
+
+    <div class="speed-control">
+        <label>Speed:</label>
+        <input type="range" id="speedSlider" min="50" max="500" value="200">
+        <span id="speedLabel">200ms</span>
+    </div>
+
+    <div class="status" id="status"></div>
+
+    <div class="overlay" id="overlay"></div>
+    <div class="win-message" id="winMessage">
+        <h2>🎉 Solved!</h2>
+        <p>Completed in <span id="finalMoves">0</span> moves</p>
+        <button onclick="closeWin()">Play Again</button>
+    </div>
+
+    <script>
+        // ==================== STATE ====================
+        let gridSize = 3;
+        let totalTiles = gridSize * gridSize;
+        let tiles = [];
+        let emptyIndex = totalTiles - 1;
+        let moves = 0;
+        let solving = false;
+        let solveInterval = null;
+
+        // Optimization: store shuffle history for instant solve
+        let shuffleHistory = [];
+        let hasUserMoved = false;
+
+        const colors = [
+            '#ef4444', '#f97316', '#f59e0b', '#eab308', '#84cc16',
+            '#22c55e', '#10b981', '#14b8a6', '#06b6d4', '#0ea5e9',
+            '#3b82f6', '#6366f1', '#8b5cf6', '#a855f7', '#d946ef',
+            '#ec4899', '#f43f5e', '#fb7185', '#fda4af', '#fecdd3',
+            '#a78bfa', '#c4b5fd', '#7dd3fc', '#67e8f9', '#5eead4'
+        ];
+
+        const tileSizes = {
+            3: { size: 100, font: '2rem' },
+            4: { size: 80, font: '1.7rem' },
+            5: { size: 70, font: '1.5rem' }
+        };
+
+        // ==================== UI HELPERS ====================
+        document.getElementById('speedSlider').addEventListener('input', (e) => {
+            document.getElementById('speedLabel').textContent = e.target.value + 'ms';
+        });
+
+        function setStatus(msg, isSolving = false) {
+            const status = document.getElementById('status');
+            status.textContent = msg;
+            status.className = 'status' + (isSolving ? ' solving' : '');
+        }
+
+        function updateMoves() {
+            document.getElementById('moves').textContent = moves;
+        }
+
+        function setControlsEnabled(enabled) {
+            document.getElementById('shuffleBtn').disabled = !enabled;
+            document.getElementById('resetBtn').disabled = !enabled;
+            document.querySelectorAll('.size-btn').forEach(btn => btn.disabled = !enabled);
+        }
+
+        // ==================== GRID HELPERS ====================
+        function getNeighbors(index, size = gridSize) {
+            const neighbors = [];
+            const row = Math.floor(index / size);
+            const col = index % size;
+
+            if (row > 0) neighbors.push(index - size);
+            if (row < size - 1) neighbors.push(index + size);
+            if (col > 0) neighbors.push(index - 1);
+            if (col < size - 1) neighbors.push(index + 1);
+
+            return neighbors;
+        }
+
+        function isSolved(state = tiles) {
+            for (let i = 0; i < state.length - 1; i++) {
+                if (state[i] !== i + 1) return false;
+            }
+            return state[state.length - 1] === 0;
+        }
+
+        // ==================== RENDERING ====================
+        function render() {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+            grid.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
+
+            const { size, font } = tileSizes[gridSize];
+
+            tiles.forEach((tile, index) => {
+                const div = document.createElement('div');
+                div.className = 'tile' + (tile === 0 ? ' empty' : '');
+                div.id = 'tile-' + index;
+                div.style.width = size + 'px';
+                div.style.height = size + 'px';
+                div.style.fontSize = font;
+
+                if (tile !== 0) {
+                    div.textContent = tile;
+                    div.style.background = colors[tile - 1];
+                    if (!solving) {
+                        div.onclick = () => moveTile(index, false, true);
+                    }
+                }
+
+                grid.appendChild(div);
+            });
+        }
+
+        // ==================== GAME LOGIC ====================
+        function init() {
+            tiles = [];
+            for (let i = 1; i < totalTiles; i++) {
+                tiles.push(i);
+            }
+            tiles.push(0);
+            emptyIndex = totalTiles - 1;
+            moves = 0;
+            shuffleHistory = [];
+            hasUserMoved = false;
+            updateMoves();
+            render();
+        }
+
+        function setSize(size) {
+            if (solving) return;
+            gridSize = size;
+            totalTiles = gridSize * gridSize;
+
+            document.querySelectorAll('.size-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.textContent === `${size}×${size}`);
+            });
+
+            init();
+            shuffle();
+        }
+
+        function moveTile(index, animated = false, isUserMove = false) {
+            const neighbors = getNeighbors(index);
+
+            if (!neighbors.includes(emptyIndex)) return false;
+
+            if (animated) {
+                const tileEl = document.getElementById('tile-' + index);
+                if (tileEl) {
+                    tileEl.classList.add('moving');
+                    setTimeout(() => tileEl.classList.remove('moving'), 150);
+                }
+            }
+
+            if (isUserMove) {
+                hasUserMoved = true;
+            }
+
+            tiles[emptyIndex] = tiles[index];
+            tiles[index] = 0;
+            emptyIndex = index;
+            moves++;
+            updateMoves();
+            render();
+
+            if (isUserMove && isSolved()) {
+                checkWin();
+            }
+
+            return true;
+        }
+
+        function shuffle() {
+            stopSolve();
+            init();
+
+            const shuffleMoves = gridSize * gridSize * 4;
+            let lastEmpty = -1;
+
+            for (let i = 0; i < shuffleMoves; i++) {
+                const neighbors = getNeighbors(emptyIndex);
+                const validNeighbors = neighbors.filter(n => n !== lastEmpty);
+                const chosen = validNeighbors.length > 0
+                    ? validNeighbors[Math.floor(Math.random() * validNeighbors.length)]
+                    : neighbors[Math.floor(Math.random() * neighbors.length)];
+
+                shuffleHistory.push(emptyIndex);
+                lastEmpty = emptyIndex;
+                tiles[emptyIndex] = tiles[chosen];
+                tiles[chosen] = 0;
+                emptyIndex = chosen;
+            }
+
+            moves = 0;
+            hasUserMoved = false;
+            updateMoves();
+            render();
+            setStatus(`Shuffled! Ready to solve.`);
+        }
+
+        function reset() {
+            stopSolve();
+            init();
+            setStatus('');
+        }
+
+        function checkWin() {
+            document.getElementById('finalMoves').textContent = moves;
+            document.getElementById('overlay').style.display = 'block';
+            document.getElementById('winMessage').style.display = 'block';
+        }
+
+        function closeWin() {
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('winMessage').style.display = 'none';
+            shuffle();
+        }
+
+        // ==================== IDA* SOLVER ====================
+        function manhattanDistance(state, size) {
+            let distance = 0;
+            for (let i = 0; i < state.length; i++) {
+                const tile = state[i];
+                if (tile !== 0) {
+                    const targetRow = Math.floor((tile - 1) / size);
+                    const targetCol = (tile - 1) % size;
+                    const currentRow = Math.floor(i / size);
+                    const currentCol = i % size;
+                    distance += Math.abs(targetRow - currentRow) + Math.abs(targetCol - currentCol);
+                }
+            }
+            return distance;
+        }
+
+        function solveWithIDA(state, size) {
+            const goal = [...Array(size * size - 1)].map((_, i) => i + 1);
+            goal.push(0);
+
+            if (arraysEqual(state, goal)) return [];
+
+            let threshold = manhattanDistance(state, size);
+            const maxIterations = 1000000;
+
+            while (threshold < 100) { // Cap depth to prevent infinite loops
+                const result = idaSearch(state, 0, threshold, [], -1, goal, size, { count: 0 }, maxIterations);
+                if (result.found) return result.path;
+                if (result.nextThreshold === Infinity) return null;
+                threshold = result.nextThreshold;
+            }
+            return null;
+        }
+
+        function idaSearch(state, g, threshold, path, lastMove, goal, size, counter, maxIter) {
+            counter.count++;
+            if (counter.count > maxIter) {
+                return { found: false, nextThreshold: Infinity };
+            }
+
+            const h = manhattanDistance(state, size);
+            const f = g + h;
+
+            if (f > threshold) {
+                return { found: false, nextThreshold: f };
+            }
+
+            if (arraysEqual(state, goal)) {
+                return { found: true, path: path };
+            }
+
+            let min = Infinity;
+            const emptyIdx = state.indexOf(0);
+            const neighbors = getNeighbors(emptyIdx, size);
+
+            // Sort neighbors by heuristic (best first)
+            neighbors.sort((a, b) => {
+                const stateA = swapTiles(state, emptyIdx, a);
+                const stateB = swapTiles(state, emptyIdx, b);
+                return manhattanDistance(stateA, size) - manhattanDistance(stateB, size);
+            });
+
+            for (const neighbor of neighbors) {
+                if (neighbor === lastMove) continue; // Don't undo last move
+
+                const newState = swapTiles(state, emptyIdx, neighbor);
+                const newPath = [...path, neighbor];
+
+                const result = idaSearch(newState, g + 1, threshold, newPath, emptyIdx, goal, size, counter, maxIter);
+
+                if (result.found) return result;
+                if (result.nextThreshold < min) min = result.nextThreshold;
+            }
+
+            return { found: false, nextThreshold: min };
+        }
+
+        function swapTiles(state, i, j) {
+            const newState = [...state];
+            [newState[i], newState[j]] = [newState[j], newState[i]];
+            return newState;
+        }
+
+        function arraysEqual(a, b) {
+            for (let i = 0; i < a.length; i++) {
+                if (a[i] !== b[i]) return false;
+            }
+            return true;
+        }
+
+        // ==================== SOLVE ANIMATION ====================
+        async function startSolve() {
+            if (solving) return;
+
+            if (isSolved()) {
+                setStatus('Already solved!');
+                return;
+            }
+
+            solving = true;
+            document.getElementById('solveBtn').style.display = 'none';
+            document.getElementById('stopBtn').style.display = 'inline-block';
+            setControlsEnabled(false);
+
+            let solution;
+
+            // Use shuffle history if user hasn't moved (fast path)
+            if (!hasUserMoved && shuffleHistory.length > 0) {
+                solution = [...shuffleHistory].reverse();
+                setStatus(`Solution ready: ${solution.length} moves`, true);
+            } else {
+                // Compute solution with IDA*
+                setStatus('Computing solution...', true);
+                await new Promise(r => setTimeout(r, 50)); // Let UI update
+
+                const startTime = performance.now();
+                solution = solveWithIDA([...tiles], gridSize);
+                const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
+
+                if (!solving) return; // Stopped while computing
+
+                if (!solution) {
+                    setStatus('Could not find solution in time limit.');
+                    stopSolve();
+                    return;
+                }
+
+                setStatus(`Found ${solution.length}-move solution in ${elapsed}s`, true);
+            }
+
+            // Animate the solution
+            animateSolution(solution);
+        }
+
+        function animateSolution(solution) {
+            const totalMoves = solution.length;
+            let moveIndex = 0;
+            const speed = parseInt(document.getElementById('speedSlider').value);
+
+            solveInterval = setInterval(() => {
+                if (moveIndex >= solution.length) {
+                    stopSolve();
+                    setStatus(`Solved in ${totalMoves} moves!`);
+                    shuffleHistory = [];
+                    hasUserMoved = false;
+                    if (isSolved()) checkWin();
+                    return;
+                }
+
+                moveTile(solution[moveIndex], true, false);
+                moveIndex++;
+                setStatus(`Solving: ${moveIndex}/${totalMoves} moves`, true);
+            }, speed);
+        }
+
+        function stopSolve() {
+            solving = false;
+            if (solveInterval) {
+                clearInterval(solveInterval);
+                solveInterval = null;
+            }
+            document.getElementById('solveBtn').style.display = 'inline-block';
+            document.getElementById('stopBtn').style.display = 'none';
+            setControlsEnabled(true);
+            render();
+        }
+
+        // ==================== START ====================
+        init();
+        shuffle();
+    </script>
+</body>
+</html>

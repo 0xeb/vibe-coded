@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vibe-Coded Games</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 40px 20px;
+        }
+
+        h1 {
+            color: #eee;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+
+        .subtitle {
+            color: #888;
+            margin-bottom: 40px;
+            font-size: 1.1rem;
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            max-width: 900px;
+            width: 100%;
+        }
+
+        .game-card {
+            background: #0f0f1a;
+            border-radius: 12px;
+            padding: 25px;
+            text-decoration: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid #2a2a4a;
+        }
+
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            border-color: #4a4a6a;
+        }
+
+        .game-card h2 {
+            color: #fff;
+            font-size: 1.4rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .game-card p {
+            color: #888;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .game-icon {
+            font-size: 1.5rem;
+        }
+
+        footer {
+            margin-top: 50px;
+            color: #555;
+            font-size: 0.85rem;
+        }
+
+        footer a {
+            color: #6a6a8a;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            color: #8a8aaa;
+        }
+    </style>
+</head>
+<body>
+    <h1>Vibe-Coded Games</h1>
+    <p class="subtitle">A collection of browser-based games</p>
+
+    <div class="games-grid">
+        <a href="flappybird/html/index.html" class="game-card">
+            <h2><span class="game-icon">🐦</span> Flappy Bird</h2>
+            <p>Navigate through pipes in this classic arcade game. Features lives system and cloud animations.</p>
+        </a>
+
+        <a href="piano-kids/piano-kids.html" class="game-card">
+            <h2><span class="game-icon">🎹</span> Piano Kids</h2>
+            <p>Educational piano for children with numbered keys, song library, and adjustable playback speed.</p>
+        </a>
+
+        <a href="sliding-puzzle/sliding-puzzle.html" class="game-card">
+            <h2><span class="game-icon">🧩</span> Sliding Puzzle</h2>
+            <p>Classic number puzzle with 3x3, 4x4, and 5x5 grids. Features auto-solver with IDA* algorithm.</p>
+        </a>
+    </div>
+
+    <footer>
+        <a href="https://github.com/0xeb/vibe-coded-games">View on GitHub</a>
+    </footer>
+</body>
+</html>
