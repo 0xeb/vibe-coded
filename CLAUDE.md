@@ -15,7 +15,8 @@ vibe-coded/
 │   ├── flappybird/     # Cross-platform Flappy Bird clone (Python/pygame and HTML5/JS)
 │   ├── tictactoe/      # Tic Tac Toe implementations (HTML5/JS, Python/pygame, and C#)
 │   ├── piano-kids/     # Educational piano game (HTML5 standalone)
-│   └── sliding-puzzle/ # Number sliding puzzle with auto-solver (HTML5 standalone)
+│   ├── sliding-puzzle/ # Number sliding puzzle with auto-solver (HTML5 standalone)
+│   └── click-trainer/  # Reaction time trainer (HTML5 standalone)
 ├── music/
 │   └── win32_happy_birthday/  # Windows MIDI player (C with WinMM)
 └── productivity/
@@ -77,6 +78,13 @@ cd games/piano-kids
 ```bash
 cd games/sliding-puzzle
 # Open sliding-puzzle.html directly in browser
+# Or serve with: python -m http.server
+```
+
+### Click Trainer
+```bash
+cd games/click-trainer
+# Open click-trainer.html directly in browser
 # Or serve with: python -m http.server
 ```
 
@@ -182,6 +190,13 @@ All game projects follow similar architectural principles:
 - IDA* algorithm with Manhattan distance heuristic for user-modified puzzles
 - Speed-adjustable solve animation
 - Win detection with celebration modal
+
+### Click Trainer
+- Full-screen canvas with crosshair cursor
+- Configurable target count and size
+- High-precision timing with `performance.now()`
+- Statistics tracking (average time, best time)
+- Colorful targets with glow effects
 
 ### Win32 Happy Birthday
 - Windows-specific MIDI implementation

@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Click Trainer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        }
+
+        canvas {
+            display: block;
+            cursor: crosshair;
+        }
+
+        .controls {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 12px 25px;
+            border-radius: 12px;
+            z-index: 100;
+        }
+
+        .controls label {
+            color: #aaa;
+            font-size: 0.95rem;
+        }
+
+        .controls input {
+            width: 70px;
+            padding: 6px 10px;
+            border: none;
+            border-radius: 6px;
+            background: #2a2a4e;
+            color: #fff;
+            font-size: 0.95rem;
+            text-align: center;
+        }
+
+        .controls button {
+            padding: 8px 24px;
+            font-size: 0.95rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            background: #4a4a6a;
+            color: white;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .controls button:hover {
+            background: #5a5a7a;
+            transform: translateY(-1px);
+        }
+
+        .controls button.start {
+            background: #22c55e;
+        }
+
+        .controls button.start:hover {
+            background: #16a34a;
+        }
+
+        .stats {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 40px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 35px;
+            border-radius: 12px;
+            z-index: 100;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat .label {
+            color: #888;
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+        }
+
+        .stat .value {
+            color: #4ade80;
+            font-size: 1.4rem;
+            font-weight: bold;
+        }
+
+        .message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #fff;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        .message h2 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #4ade80;
+        }
+
+        .message p {
+            font-size: 1.2rem;
+            color: #aaa;
+        }
+
+        .message.hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <label>Balls:</label>
+        <input type="number" id="ballCount" value="10" min="1" max="100">
+
+        <label>Size:</label>
+        <input type="number" id="ballSize" value="40" min="10" max="100">
+
+        <button class="start" onclick="startGame()">Start</button>
+        <button onclick="resetGame()">Reset</button>
+    </div>
+
+    <canvas id="canvas"></canvas>
+
+    <div class="stats">
+        <div class="stat">
+            <div class="label">Clicked</div>
+            <div class="value"><span id="clicked">0</span> / <span id="total">10</span></div>
+        </div>
+        <div class="stat">
+            <div class="label">Avg Time</div>
+            <div class="value"><span id="avgTime">0</span> ms</div>
+        </div>
+        <div class="stat">
+            <div class="label">Best Time</div>
+            <div class="value"><span id="bestTime">-</span></div>
+        </div>
+    </div>
+
+    <div class="message" id="message">
+        <h2>Click Trainer</h2>
+        <p>Set ball count and click Start</p>
+    </div>
+
+    <script>
+        // ==================== STATE ====================
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        let gameActive = false;
+        let ballsClicked = 0;
+        let totalBalls = 10;
+        let ballSize = 40;
+        let times = [];
+        let lastSpawnTime = 0;
+        let bestTime = Infinity;
+
+        let currentBall = null;
+
+        const colors = [
+            '#ef4444', '#f97316', '#f59e0b', '#eab308', '#84cc16',
+            '#22c55e', '#10b981', '#14b8a6', '#06b6d4', '#0ea5e9',
+            '#3b82f6', '#6366f1', '#8b5cf6', '#a855f7', '#d946ef',
+            '#ec4899'
+        ];
+
+        // ==================== CANVAS SETUP ====================
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            draw();
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // ==================== DRAWING ====================
+        function draw() {
+            // Clear with gradient background
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, '#1a1a2e');
+            gradient.addColorStop(1, '#16213e');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw current ball
+            if (currentBall && gameActive) {
+                ctx.beginPath();
+                ctx.arc(currentBall.x, currentBall.y, currentBall.radius, 0, Math.PI * 2);
+                ctx.fillStyle = currentBall.color;
+                ctx.fill();
+
+                // Glow effect
+                ctx.shadowColor = currentBall.color;
+                ctx.shadowBlur = 20;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+        }
+
+        // ==================== GAME LOGIC ====================
+        function spawnBall() {
+            const padding = ballSize + 20;
+            const minY = 100; // Below controls
+            const maxY = canvas.height - 100; // Above stats
+
+            currentBall = {
+                x: padding + Math.random() * (canvas.width - padding * 2),
+                y: minY + Math.random() * (maxY - minY),
+                radius: ballSize / 2,
+                color: colors[Math.floor(Math.random() * colors.length)]
+            };
+
+            lastSpawnTime = performance.now();
+            draw();
+        }
+
+        function startGame() {
+            totalBalls = parseInt(document.getElementById('ballCount').value) || 10;
+            ballSize = parseInt(document.getElementById('ballSize').value) || 40;
+
+            ballsClicked = 0;
+            times = [];
+            gameActive = true;
+
+            updateStats();
+            hideMessage();
+            spawnBall();
+        }
+
+        function resetGame() {
+            gameActive = false;
+            currentBall = null;
+            ballsClicked = 0;
+            times = [];
+
+            updateStats();
+            draw();
+            showMessage('Click Trainer', 'Set ball count and click Start');
+        }
+
+        function endGame() {
+            gameActive = false;
+            currentBall = null;
+            draw();
+
+            const avg = times.length > 0 ? Math.round(times.reduce((a, b) => a + b, 0) / times.length) : 0;
+            const best = times.length > 0 ? Math.round(Math.min(...times)) : 0;
+
+            showMessage('Complete!', `Average: ${avg}ms | Best: ${best}ms`);
+        }
+
+        // ==================== INPUT ====================
+        canvas.addEventListener('click', (e) => {
+            if (!gameActive || !currentBall) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            // Check if click is inside the ball
+            const dx = x - currentBall.x;
+            const dy = y - currentBall.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance <= currentBall.radius) {
+                // Hit!
+                const clickTime = performance.now() - lastSpawnTime;
+                times.push(clickTime);
+                ballsClicked++;
+
+                if (clickTime < bestTime) {
+                    bestTime = clickTime;
+                }
+
+                updateStats();
+
+                if (ballsClicked >= totalBalls) {
+                    endGame();
+                } else {
+                    spawnBall();
+                }
+            }
+        });
+
+        // ==================== UI UPDATES ====================
+        function updateStats() {
+            document.getElementById('clicked').textContent = ballsClicked;
+            document.getElementById('total').textContent = totalBalls;
+
+            const avg = times.length > 0
+                ? Math.round(times.reduce((a, b) => a + b, 0) / times.length)
+                : 0;
+            document.getElementById('avgTime').textContent = avg;
+
+            const best = bestTime < Infinity ? Math.round(bestTime) + ' ms' : '-';
+            document.getElementById('bestTime').textContent = best;
+        }
+
+        function showMessage(title, subtitle) {
+            const msg = document.getElementById('message');
+            msg.innerHTML = `<h2>${title}</h2><p>${subtitle}</p>`;
+            msg.classList.remove('hidden');
+        }
+
+        function hideMessage() {
+            document.getElementById('message').classList.add('hidden');
+        }
+
+        // ==================== START ====================
+        updateStats();
+    </script>
+</body>
+</html>
