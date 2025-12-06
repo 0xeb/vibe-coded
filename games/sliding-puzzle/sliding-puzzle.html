@@ -72,13 +72,24 @@
             font-weight: bold;
         }
 
+        .grid-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 500px;
+        }
+
         .grid {
             display: grid;
-            gap: 6px;
+            gap: clamp(4px, 1vw, 6px);
             background: #0f0f1a;
-            padding: 12px;
+            padding: clamp(8px, 2vw, 12px);
             border-radius: 12px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            width: 100%;
+            aspect-ratio: 1;
+            max-width: min(80vw, 80vh, 400px);
         }
 
         .tile {
@@ -91,6 +102,8 @@
             cursor: pointer;
             transition: transform 0.15s ease, box-shadow 0.15s ease;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            aspect-ratio: 1;
+            font-size: clamp(1.2rem, 4vw, 2rem);
         }
 
         .tile:not(.empty):hover {
@@ -150,16 +163,57 @@
             color: #4ade80;
         }
 
-        .speed-control {
-            margin-top: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: #aaa;
+        .hint-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            font-size: 1rem;
+            border-radius: 50%;
+            background: #2a2a3a;
+            color: #666;
+            border: 1px solid #3a3a4a;
+            opacity: 0.6;
+            transition: opacity 0.2s, background 0.2s;
         }
 
-        .speed-control input {
-            width: 120px;
+        .hint-btn:hover:not(:disabled) {
+            opacity: 1;
+            background: #3a3a4a;
+            transform: none;
+        }
+
+        .hint-controls {
+            position: fixed;
+            bottom: 20px;
+            right: 70px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            background: #0f0f1a;
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid #3a3a4a;
+        }
+
+        .hint-controls.visible {
+            display: flex;
+        }
+
+        .hint-controls label {
+            color: #888;
+            font-size: 0.85rem;
+        }
+
+        .hint-controls input {
+            width: 80px;
+        }
+
+        .hint-controls button {
+            padding: 6px 12px;
+            font-size: 0.85rem;
         }
 
         .win-message {
@@ -210,26 +264,28 @@
 
     <div class="stats">Moves: <span id="moves">0</span></div>
 
-    <div class="grid" id="grid"></div>
+    <div class="grid-container">
+        <div class="grid" id="grid"></div>
+    </div>
 
     <div class="buttons">
         <button onclick="shuffle()" id="shuffleBtn">Shuffle</button>
-        <button onclick="startSolve()" id="solveBtn">Solve</button>
-        <button onclick="stopSolve()" id="stopBtn" style="display:none;">Stop</button>
         <button onclick="reset()" id="resetBtn">Reset</button>
-    </div>
-
-    <div class="speed-control">
-        <label>Speed:</label>
-        <input type="range" id="speedSlider" min="50" max="500" value="200">
-        <span id="speedLabel">200ms</span>
     </div>
 
     <div class="status" id="status"></div>
 
+    <button class="hint-btn" id="hintBtn" onclick="toggleHintControls()" title="Auto-solve">?</button>
+    <div class="hint-controls" id="hintControls">
+        <label>Speed:</label>
+        <input type="range" id="speedSlider" min="50" max="500" value="200">
+        <button onclick="startSolve()" id="solveBtn">Go</button>
+        <button onclick="stopSolve()" id="stopBtn" style="display:none;">Stop</button>
+    </div>
+
     <div class="overlay" id="overlay"></div>
     <div class="win-message" id="winMessage">
-        <h2>🎉 Solved!</h2>
+        <h2>Solved!</h2>
         <p>Completed in <span id="finalMoves">0</span> moves</p>
         <button onclick="closeWin()">Play Again</button>
     </div>
@@ -256,16 +312,11 @@
             '#a78bfa', '#c4b5fd', '#7dd3fc', '#67e8f9', '#5eead4'
         ];
 
-        const tileSizes = {
-            3: { size: 100, font: '2rem' },
-            4: { size: 80, font: '1.7rem' },
-            5: { size: 70, font: '1.5rem' }
-        };
-
         // ==================== UI HELPERS ====================
-        document.getElementById('speedSlider').addEventListener('input', (e) => {
-            document.getElementById('speedLabel').textContent = e.target.value + 'ms';
-        });
+        function toggleHintControls() {
+            const controls = document.getElementById('hintControls');
+            controls.classList.toggle('visible');
+        }
 
         function setStatus(msg, isSolving = false) {
             const status = document.getElementById('status');
@@ -280,6 +331,7 @@
         function setControlsEnabled(enabled) {
             document.getElementById('shuffleBtn').disabled = !enabled;
             document.getElementById('resetBtn').disabled = !enabled;
+            document.getElementById('hintBtn').disabled = !enabled;
             document.querySelectorAll('.size-btn').forEach(btn => btn.disabled = !enabled);
         }
 
@@ -310,15 +362,10 @@
             grid.innerHTML = '';
             grid.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
 
-            const { size, font } = tileSizes[gridSize];
-
             tiles.forEach((tile, index) => {
                 const div = document.createElement('div');
                 div.className = 'tile' + (tile === 0 ? ' empty' : '');
                 div.id = 'tile-' + index;
-                div.style.width = size + 'px';
-                div.style.height = size + 'px';
-                div.style.fontSize = font;
 
                 if (tile !== 0) {
                     div.textContent = tile;
@@ -416,7 +463,7 @@
             hasUserMoved = false;
             updateMoves();
             render();
-            setStatus(`Shuffled! Ready to solve.`);
+            setStatus('');
         }
 
         function reset() {
@@ -462,7 +509,7 @@
             let threshold = manhattanDistance(state, size);
             const maxIterations = 1000000;
 
-            while (threshold < 100) { // Cap depth to prevent infinite loops
+            while (threshold < 100) {
                 const result = idaSearch(state, 0, threshold, [], -1, goal, size, { count: 0 }, maxIterations);
                 if (result.found) return result.path;
                 if (result.nextThreshold === Infinity) return null;
@@ -492,7 +539,6 @@
             const emptyIdx = state.indexOf(0);
             const neighbors = getNeighbors(emptyIdx, size);
 
-            // Sort neighbors by heuristic (best first)
             neighbors.sort((a, b) => {
                 const stateA = swapTiles(state, emptyIdx, a);
                 const stateB = swapTiles(state, emptyIdx, b);
@@ -500,7 +546,7 @@
             });
 
             for (const neighbor of neighbors) {
-                if (neighbor === lastMove) continue; // Don't undo last move
+                if (neighbor === lastMove) continue;
 
                 const newState = swapTiles(state, emptyIdx, neighbor);
                 const newPath = [...path, neighbor];
@@ -543,31 +589,26 @@
 
             let solution;
 
-            // Use shuffle history if user hasn't moved (fast path)
             if (!hasUserMoved && shuffleHistory.length > 0) {
                 solution = [...shuffleHistory].reverse();
-                setStatus(`Solution ready: ${solution.length} moves`, true);
+                setStatus(`Solving: 0/${solution.length}`, true);
             } else {
-                // Compute solution with IDA*
-                setStatus('Computing solution...', true);
-                await new Promise(r => setTimeout(r, 50)); // Let UI update
+                setStatus('Computing...', true);
+                await new Promise(r => setTimeout(r, 50));
 
-                const startTime = performance.now();
                 solution = solveWithIDA([...tiles], gridSize);
-                const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
 
-                if (!solving) return; // Stopped while computing
+                if (!solving) return;
 
                 if (!solution) {
-                    setStatus('Could not find solution in time limit.');
+                    setStatus('Could not solve.');
                     stopSolve();
                     return;
                 }
 
-                setStatus(`Found ${solution.length}-move solution in ${elapsed}s`, true);
+                setStatus(`Solving: 0/${solution.length}`, true);
             }
 
-            // Animate the solution
             animateSolution(solution);
         }
 
@@ -579,7 +620,7 @@
             solveInterval = setInterval(() => {
                 if (moveIndex >= solution.length) {
                     stopSolve();
-                    setStatus(`Solved in ${totalMoves} moves!`);
+                    setStatus('');
                     shuffleHistory = [];
                     hasUserMoved = false;
                     if (isSolved()) checkWin();
@@ -588,7 +629,7 @@
 
                 moveTile(solution[moveIndex], true, false);
                 moveIndex++;
-                setStatus(`Solving: ${moveIndex}/${totalMoves} moves`, true);
+                setStatus(`Solving: ${moveIndex}/${totalMoves}`, true);
             }, speed);
         }
 
