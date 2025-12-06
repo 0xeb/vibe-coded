@@ -16,6 +16,19 @@ Classic Tic Tac Toe game implemented in multiple languages, demonstrating cross-
 
 ## Implementations
 
+### HTML5 Version (Browser)
+```bash
+cd html
+# Open tic-tac-toe.html directly in browser
+# Or serve with: python -m http.server
+```
+
+**Features:**
+- 2-player local multiplayer
+- AI opponent (Easy - random, Hard - minimax)
+- Score tracking
+- Dark theme with animations
+
 ### Python Version (pygame)
 ```bash
 pip install pygame
@@ -50,6 +63,9 @@ dotnet build
 
 ```
 tictactoe/
+├── html/              # HTML5 browser version
+│   ├── tic-tac-toe.html
+│   └── PROMPTS/       # HTML version prompts
 ├── PROMPTS/           # AI development prompts
 │   ├── README.md      # Prompts guide
 │   └── development.md # Progressive prompts
@@ -60,6 +76,13 @@ tictactoe/
 ```
 
 ## Technical Details
+
+### HTML5 Version
+- Single-file implementation (HTML/CSS/JS)
+- Minimax algorithm for unbeatable AI
+- Animated win highlighting
+- Score persistence within session
+- Dark gradient theme
 
 ### Python Version
 - Uses pygame for graphics and input

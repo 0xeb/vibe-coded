@@ -4,25 +4,33 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Tic Tac Toe game implemented in Python using Pygame. The game features a 3x3 grid where two players take turns marking X's and O's.
+Tic Tac Toe implemented in multiple languages: HTML5/JavaScript, Python/Pygame, and C#. Each version features a 3x3 grid where two players take turns marking X's and O's.
 
 ## Development Commands
 
-### Running the Game
+### HTML5 Version (Browser)
+```bash
+cd html
+# Open tic-tac-toe.html directly in browser
+# Or serve with: python -m http.server
+```
+
+### Python Version
 ```bash
 python tictactoe.py
 # or
 python3 tictactoe.py
 ```
 
-### Dependencies
-- Python 3.x
-- Pygame library
-
-To install dependencies:
+### C# Version
 ```bash
-pip install pygame
+dotnet run
 ```
+
+### Dependencies
+- **HTML5**: No dependencies (runs in browser)
+- **Python**: pygame library (`pip install pygame`)
+- **C#**: .NET SDK
 
 ## Architecture
 

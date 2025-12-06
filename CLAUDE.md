@@ -13,7 +13,7 @@ vibe-coded/
 ├── games/
 │   ├── index.html      # Launcher page for all HTML games
 │   ├── flappybird/     # Cross-platform Flappy Bird clone (Python/pygame and HTML5/JS)
-│   ├── tictactoe/      # Tic Tac Toe implementations (Python/pygame and C#)
+│   ├── tictactoe/      # Tic Tac Toe implementations (HTML5/JS, Python/pygame, and C#)
 │   ├── piano-kids/     # Educational piano game (HTML5 standalone)
 │   └── sliding-puzzle/ # Number sliding puzzle with auto-solver (HTML5 standalone)
 ├── music/
@@ -57,6 +57,13 @@ python tictactoe.py
 cd games/tictactoe
 dotnet build
 dotnet run
+```
+
+### Tic Tac Toe (Web)
+```bash
+cd games/tictactoe/html
+# Open tic-tac-toe.html directly in browser
+# Or serve with: python -m http.server
 ```
 
 ### Piano Kids
@@ -158,9 +165,10 @@ All game projects follow similar architectural principles:
 
 ### Tic Tac Toe
 - Simple 3x3 grid with win detection
-- Multiple implementations demonstrating different languages
+- Multiple implementations (HTML5/JS, Python/pygame, C#)
+- HTML5 version includes AI opponents (easy/hard with minimax)
+- Score tracking and animated win highlighting
 - Mouse-based input with visual feedback
-- Restart functionality
 
 ### Piano Kids
 - Web Audio API for sound generation
