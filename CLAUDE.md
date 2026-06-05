@@ -4,231 +4,106 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-This is a collection of educational games and interactive applications demonstrating various programming languages and frameworks. Each project is self-contained within its own directory.
+A collection of educational games and interactive applications across multiple languages (Python, JavaScript, C#, C). Each project is self-contained with its own `CLAUDE.md` containing implementation-specific details — consult those for per-project architecture, algorithms, and state management.
 
 ## Project Structure
 
 ```
 vibe-coded/
 ├── games/
-│   ├── index.html      # Launcher page for all HTML games
-│   ├── flappybird/     # Cross-platform Flappy Bird clone (Python/pygame and HTML5/JS)
-│   ├── tictactoe/      # Tic Tac Toe implementations (HTML5/JS, Python/pygame, and C#)
-│   ├── piano-kids/     # Educational piano game (HTML5 standalone)
-│   ├── sliding-puzzle/ # Number sliding puzzle with auto-solver (HTML5 standalone)
-│   └── click-trainer/  # Reaction time trainer (HTML5 standalone)
+│   ├── index.html          # Launcher page for all HTML games (MUST update when adding games)
+│   ├── flappybird/         # Python/pygame + HTML5/JS (dual implementation)
+│   ├── tictactoe/          # HTML5/JS + Python/pygame + C# (triple implementation)
+│   ├── piano-kids/         # HTML5 standalone
+│   ├── sliding-puzzle/     # HTML5 standalone
+│   ├── click-trainer/      # HTML5 standalone
+│   └── 21cards-trick/      # HTML5 standalone
 ├── music/
-│   └── win32_happy_birthday/  # Windows MIDI player (C with WinMM)
+│   └── win32_happy_birthday/  # C with WinMM (Windows only)
 └── productivity/
-    └── powerpoint-agent/  # Marp-based presentation creator with LLM agent support
+    └── powerpoint-agent/      # Marp + LLM agent workflow
 ```
 
 ## Common Development Commands
 
-### All HTML Games (Launcher)
+### HTML Games Launcher
 ```bash
-cd games
-python -m http.server 8000
-# Open http://localhost:8000 for the games launcher
+cd games && python -m http.server 8000
+# Open http://localhost:8000
 ```
 
-### Flappy Bird (Python)
+### Standalone HTML Games (piano-kids, sliding-puzzle, click-trainer, 21cards-trick)
+Open the HTML file directly in a browser, or serve via `python -m http.server` from the game directory.
+
+### Flappy Bird
 ```bash
-cd games/flappybird/python
-pip install pygame>=2.0
-python -m myflappy
+# Python
+cd games/flappybird/python && pip install pygame>=2.0 && python -m myflappy
+
+# Web
+cd games/flappybird/html && npm install && npm start  # http://localhost:3000
 ```
 
-### Flappy Bird (Web)
+### Tic Tac Toe
 ```bash
-cd games/flappybird/html
-npm install
-npm start  # Opens at http://localhost:3000
-```
+# Python
+cd games/tictactoe && pip install pygame && python tictactoe.py
 
-### Tic Tac Toe (Python)
-```bash
-cd games/tictactoe
-pip install pygame
-python tictactoe.py
-```
+# C#
+cd games/tictactoe && dotnet build && dotnet run
 
-### Tic Tac Toe (C#)
-```bash
-cd games/tictactoe
-dotnet build
-dotnet run
-```
-
-### Tic Tac Toe (Web)
-```bash
-cd games/tictactoe/html
-# Open tic-tac-toe.html directly in browser
-# Or serve with: python -m http.server
-```
-
-### Piano Kids
-```bash
-cd games/piano-kids
-# Open piano-kids.html directly in browser
-# Or serve with: python -m http.server
-```
-
-### Sliding Puzzle
-```bash
-cd games/sliding-puzzle
-# Open sliding-puzzle.html directly in browser
-# Or serve with: python -m http.server
-```
-
-### Click Trainer
-```bash
-cd games/click-trainer
-# Open click-trainer.html directly in browser
-# Or serve with: python -m http.server
+# Web: open games/tictactoe/html/tic-tac-toe.html in browser
 ```
 
 ### Win32 Happy Birthday (Windows only)
 ```bash
-cd music/win32_happy_birthday/build
-cmake ..
-cmake --build .
+cd music/win32_happy_birthday/build && cmake .. && cmake --build .
 ./wi32_midi_happy_birthday.exe
 ```
 
-### PowerPoint Agent (Windows recommended)
+### PowerPoint Agent
 ```bash
 cd productivity/powerpoint-agent
-
-# Install prerequisites (run in order, wait for Step 1 to complete)
-install-step1.bat  # Installs Node.js, LibreOffice, Python, etc.
-install-step2.bat  # Installs npm packages (Marp CLI, etc.)
-
-# Verify installation
-node --version
-marp --version
-where soffice  # LibreOffice (required for editable PPTX)
-
-# Generate a test presentation
-marp-pptx.bat hello.md
-# or PowerShell: .\marp-pptx.ps1 hello.md
-
-# Use with LLM agents (e.g., GitHub Copilot CLI)
-copilot --allow-all-tools
-# Then prompt: "Please load the agent-pptx.md file"
+install-step1.bat   # Node.js, LibreOffice, Python, etc.
+install-step2.bat   # npm packages (Marp CLI)
+marp-pptx.bat hello.md  # or: .\marp-pptx.ps1 hello.md
 ```
 
 ## Architecture Patterns
 
-### Game Development Patterns
+### Cross-Cutting Patterns
+- **State machines**: Games use states (START, PLAYING, PAUSED, GAMEOVER) with a main update-render loop
+- **Entity separation**: Game objects (player, obstacles, UI) in separate modules/classes
+- **Centralized config**: Tunable constants in dedicated locations (e.g., `constants.py`, top of `game.js`)
+- **PROMPTS/ directories**: Most projects include a `PROMPTS/` folder documenting the AI prompts used during development
 
-All game projects follow similar architectural principles:
+### Technology Stack Details
+- **Python/Pygame**: Package structure with `__main__.py` entry points, modular classes
+- **Web games**: Vanilla JS (no frameworks), Canvas + `requestAnimationFrame`, mobile-responsive
+- **C/C++**: CMake build system, platform-specific APIs
+- **PowerPoint Agent**: Marp (Markdown → PPTX), requires LibreOffice for `--pptx-editable` flag; use helper scripts (`marp-pptx.bat`/`.ps1`) instead of calling `marp` directly
 
-1. **State Management**: Games use state machines (START, PLAYING, PAUSED, GAMEOVER)
-2. **Entity Separation**: Game entities (player, obstacles, UI) are typically in separate modules
-3. **Configuration**: Constants and tunable parameters are centralized
-4. **Game Loop**: Standard update-render loop pattern with fixed timestep where applicable
+## Testing
 
-### Python/Pygame Projects
-
-- Use modular class-based architecture
-- Package structure with `__main__.py` for module execution
-- Constants separated in dedicated configuration files
-- Standard pygame event loop with state management
-
-### Web Projects
-
-- Standalone HTML files or minimal server setup with Express.js
-- Canvas-based rendering with requestAnimationFrame
-- Vanilla JavaScript (no frameworks) for simplicity
-- Mobile-responsive design considerations
-
-### C/C++ Projects
-
-- CMake-based build system
-- Platform-specific APIs (WinMM for Windows MIDI)
-- Minimal external dependencies
-
-### Productivity Tools
-
-- **Marp-based workflow**: Markdown → HTML/PDF/PPTX conversion
-- **LLM agent integration**: agent-pptx.md provides structured prompts for AI assistants
-- **Helper scripts**: Batch (.bat) and PowerShell (.ps1) wrappers for cross-shell compatibility
-- **Editable output**: LibreOffice enables `--pptx-editable` flag for fully editable PowerPoint files
-- **Folder structure**: Each presentation in its own subfolder with `images/`, `plan.md`, and source `.md` files
-
-## Testing Approach
-
-- **Python Games**: Run directly with `python -m <module>` or `python <file>.py`
-- **Web Games**: Test in browser with local server to avoid CORS issues
-- **Debug Features**: Most games include debug modes (god mode, extra lives) accessible via keyboard shortcuts
-
-## Key Implementation Details
-
-### Flappy Bird
-- Modular architecture with separate physics, rendering, and game state
-- Configurable difficulty through constants (pipe gap, speed, gravity)
-- Lives system with invulnerability frames
-- Both Python and JavaScript versions maintain feature parity
-
-### Tic Tac Toe
-- Simple 3x3 grid with win detection
-- Multiple implementations (HTML5/JS, Python/pygame, C#)
-- HTML5 version includes AI opponents (easy/hard with minimax)
-- Score tracking and animated win highlighting
-- Mouse-based input with visual feedback
-
-### Piano Kids
-- Web Audio API for sound generation
-- Educational focus with numbered keys (1-6)
-- Song library with playback at variable speeds
-- Print mode for song sheets
-
-### Sliding Puzzle
-- Configurable grid sizes (3×3, 4×4, 5×5)
-- Shuffle history recording for instant reverse-solve
-- IDA* algorithm with Manhattan distance heuristic for user-modified puzzles
-- Speed-adjustable solve animation
-- Win detection with celebration modal
-
-### Click Trainer
-- Full-screen canvas with crosshair cursor
-- Configurable target count and size
-- High-precision timing with `performance.now()`
-- Statistics tracking (average time, best time)
-- Colorful targets with glow effects
-
-### Win32 Happy Birthday
-- Windows-specific MIDI implementation
-- Demonstrates low-level audio programming
-- CMake build configuration for cross-compiler support
-
-### PowerPoint Agent
-- Automates presentation creation using Marp (Markdown Presentation Ecosystem)
-- `agent-pptx.md` defines a 4-step workflow: Define → Research & Plan → Create → Generate PPTX
-- Helper scripts (`marp-pptx.bat`/`.ps1`) wrap Marp CLI with proper flags and LibreOffice PATH setup
-- Requires LibreOffice for `--pptx-editable` flag (creates fully editable PowerPoint files vs. image-only slides)
-- Critical flags: `--allow-local-files` (for images), `--pptx-editable` (for text editing in PowerPoint)
-- Designed for LLM agent automation (GitHub Copilot CLI, Claude Code, etc.)
+- No automated test framework across the repo; `games/tictactoe/test.cs` is the only unit test file
+- **Manual testing**: Run games directly and exercise features
+- **Debug shortcuts**: Most games have debug modes (e.g., Flappy Bird: I for +5 lives, G for god mode, P to pause)
+- **Web games**: Use a local HTTP server to avoid CORS issues
 
 ## Development Guidelines
 
-When modifying existing games:
-1. Maintain the existing code style and patterns
-2. Keep configuration values in their designated locations
-3. Preserve debug features for testing
-4. Update relevant CLAUDE.md files in subdirectories
+When adding a new HTML game:
+1. Create a self-contained directory under `games/` with the game HTML file
+2. **Add a card to `games/index.html`** — this is the launcher and must list all games
+3. Add a `CLAUDE.md` in the game directory with implementation details
+4. Add a `README.md` with usage instructions
 
-When adding new features:
-1. Follow the established state management patterns
-2. Keep entity logic separated
-3. Add keyboard shortcuts for debug features
-4. Document any new dependencies or build steps
+When modifying existing projects:
+1. Read the project's own `CLAUDE.md` first for architecture and implementation details
+2. Keep configuration values in their designated locations
+3. Preserve debug features and keyboard shortcuts
 
 When creating presentations with powerpoint-agent:
-1. Always use the helper scripts (`marp-pptx.bat` or `.ps1`) instead of calling `marp` directly
-2. Organize each presentation in its own subfolder under `example/` or custom location
-3. Create a `plan.md` before writing the presentation markdown
-4. Store images in logical subfolders (e.g., `images/logos/`, `images/screenshots/`)
-5. Verify LibreOffice is installed and accessible via `soffice` command before generating PPTX
-6. Use Marp front matter: `marp: true`, `theme: default`, `paginate: true`, `header: ''`, `footer: ''`
+1. Use helper scripts (`marp-pptx.bat`/`.ps1`), not `marp` directly
+2. Each presentation in its own subfolder with `images/` and `plan.md`
+3. Use Marp front matter: `marp: true`, `theme: default`, `paginate: true`

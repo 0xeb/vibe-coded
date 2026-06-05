@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>21 Cards Magic Trick</title>
+    <style>
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-dark: #0a0a14;
+            --bg-surface: #16213e;
+            --bg-card-area: #0f0f1a;
+            --purple: #7b2ff7;
+            --purple-glow: #9d4edd;
+            --purple-dim: rgba(123, 47, 247, 0.15);
+            --gold: #ffd700;
+            --gold-dim: #b8860b;
+            --gold-glow: rgba(255, 215, 0, 0.3);
+            --text: #e8e8f0;
+            --text-dim: #8888aa;
+            --red-card: #d32f2f;
+            --card-w: 76px;
+            --card-h: 108px;
+            --transition: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        body {
+            min-height: 100vh;
+            background: radial-gradient(ellipse at 50% 0%, #1a1a3e 0%, var(--bg-dark) 60%);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        /* ===== NAV ===== */
+        nav {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 16px 20px;
+            width: 100%;
+            max-width: 960px;
+            flex-wrap: wrap;
+        }
+        .logo {
+            font-family: Georgia, serif;
+            font-size: 1.3rem;
+            color: var(--gold);
+            margin-right: auto;
+            letter-spacing: 0.5px;
+        }
+        nav button {
+            background: transparent;
+            border: 1px solid #2a2a4a;
+            color: var(--text-dim);
+            padding: 8px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.25s;
+        }
+        nav button:hover { border-color: var(--purple); color: var(--text); }
+        nav button.active {
+            background: var(--purple);
+            border-color: var(--purple);
+            color: #fff;
+        }
+
+        /* ===== SECTIONS ===== */
+        section {
+            display: none;
+            width: 100%;
+            max-width: 960px;
+            padding: 0 20px 40px;
+            flex-direction: column;
+            align-items: center;
+        }
+        section.active { display: flex; }
+
+        /* ===== PLAY MODE ===== */
+        .play-title {
+            font-family: Georgia, serif;
+            font-size: 2.2rem;
+            color: var(--gold);
+            text-align: center;
+            margin: 40px 0 12px;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.25);
+        }
+        .play-subtitle {
+            color: var(--text-dim);
+            text-align: center;
+            font-size: 1.05rem;
+            max-width: 500px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        .btn-begin {
+            background: linear-gradient(135deg, var(--purple), #5a1fd0);
+            border: none;
+            color: #fff;
+            padding: 16px 48px;
+            border-radius: 12px;
+            font-size: 1.15rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            animation: pulse-btn 2s ease-in-out infinite;
+        }
+        .btn-begin:hover { transform: scale(1.05); box-shadow: 0 0 30px rgba(123, 47, 247, 0.5); }
+        @keyframes pulse-btn {
+            0%, 100% { box-shadow: 0 0 10px rgba(123, 47, 247, 0.3); }
+            50% { box-shadow: 0 0 25px rgba(123, 47, 247, 0.6); }
+        }
+
+        .round-indicator {
+            font-size: 0.9rem;
+            color: var(--purple-glow);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin: 20px 0 6px;
+        }
+        .round-prompt {
+            font-family: Georgia, serif;
+            font-size: 1.4rem;
+            color: var(--text);
+            margin-bottom: 24px;
+            animation: fade-in 0.5s;
+        }
+
+        /* ===== COLUMNS GRID ===== */
+        .columns-container {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            padding: 14px 10px;
+            border-radius: 14px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+        .column:hover {
+            border-color: var(--purple-glow);
+            background: var(--purple-dim);
+            box-shadow: 0 0 25px rgba(123, 47, 247, 0.15);
+        }
+        .column.flash {
+            border-color: var(--gold) !important;
+            background: rgba(255, 215, 0, 0.08) !important;
+            box-shadow: 0 0 35px var(--gold-glow) !important;
+        }
+        .column-label {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 4px;
+        }
+        .columns-container.disabled .column {
+            pointer-events: none;
+        }
+
+        /* ===== CARDS ===== */
+        .card {
+            width: var(--card-w);
+            height: var(--card-h);
+            border-radius: 8px;
+            perspective: 600px;
+            position: relative;
+        }
+        .card-inner {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.5s;
+            border-radius: 8px;
+        }
+        .card.face-down .card-inner {
+            transform: rotateY(180deg);
+        }
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .card-front {
+            background: linear-gradient(145deg, #ffffff, #f5f5f5);
+            border: 2px solid #ccc;
+            font-family: Georgia, serif;
+        }
+        .card-front .rank { font-size: 1.25rem; font-weight: bold; line-height: 1; }
+        .card-front .suit { font-size: 1.7rem; line-height: 1; margin-top: 2px; }
+        .card.red .card-front { color: var(--red-card); }
+        .card.black .card-front { color: #222; }
+        .card-front .corner {
+            position: absolute;
+            font-size: 0.65rem;
+            line-height: 1.1;
+            text-align: center;
+        }
+        .card-front .corner-tl { top: 4px; left: 5px; }
+        .card-front .corner-br { bottom: 4px; right: 5px; transform: rotate(180deg); }
+
+        .card-back {
+            background:
+                repeating-linear-gradient(45deg, transparent 0px, transparent 8px, rgba(255,215,0,0.07) 8px, rgba(255,215,0,0.07) 9px),
+                repeating-linear-gradient(-45deg, transparent 0px, transparent 8px, rgba(255,215,0,0.07) 8px, rgba(255,215,0,0.07) 9px),
+                linear-gradient(135deg, var(--purple), #2d1b69);
+            border: 2px solid var(--gold-dim);
+            transform: rotateY(180deg);
+        }
+
+        .card.highlighted .card-front {
+            border-color: var(--gold);
+            box-shadow: 0 0 12px var(--gold-glow);
+        }
+
+        /* dealing animation */
+        .card.dealing {
+            animation: deal-in 0.35s ease-out forwards;
+            animation-delay: calc(var(--i) * 40ms);
+            opacity: 0;
+        }
+        @keyframes deal-in {
+            from { opacity: 0; transform: translateY(-25px) scale(0.85); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* fade out for non-revealed cards */
+        .card.fade-away {
+            transition: opacity 0.6s, transform 0.6s;
+            opacity: 0 !important;
+            transform: scale(0.7);
+        }
+
+        /* ===== REVEAL ===== */
+        .reveal-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+            margin-top: 40px;
+            animation: fade-in 0.5s;
+        }
+        .reveal-text {
+            font-family: Georgia, serif;
+            font-size: 1.3rem;
+            color: var(--text-dim);
+            animation: fade-in 1s;
+        }
+        .reveal-card-wrap {
+            position: relative;
+        }
+        .reveal-card-wrap .card {
+            width: 120px;
+            height: 170px;
+        }
+        .reveal-card-wrap .card-front .rank { font-size: 2rem; }
+        .reveal-card-wrap .card-front .suit { font-size: 2.8rem; }
+        .reveal-card-wrap .card-front .corner { font-size: 0.85rem; }
+        .reveal-card-wrap .card.revealed .card-front {
+            border-color: var(--gold);
+            animation: reveal-glow 2s ease-out forwards;
+        }
+        @keyframes reveal-glow {
+            0% { box-shadow: 0 0 0 rgba(255,215,0,0); }
+            40% { box-shadow: 0 0 50px rgba(255,215,0,0.7); }
+            100% { box-shadow: 0 0 25px rgba(255,215,0,0.4); }
+        }
+
+        .reveal-name {
+            font-family: Georgia, serif;
+            font-size: 1.8rem;
+            color: var(--gold);
+            text-shadow: 0 0 20px rgba(255,215,0,0.3);
+            animation: fade-in 0.8s 0.5s both;
+        }
+
+        /* sparkle particles */
+        .sparkles {
+            position: absolute;
+            inset: -40px;
+            pointer-events: none;
+        }
+        .sparkle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--gold);
+            top: 50%;
+            left: 50%;
+            animation: sparkle-out 1.2s ease-out forwards;
+            animation-delay: var(--d);
+        }
+        @keyframes sparkle-out {
+            0% { opacity: 1; transform: translate(-50%, -50%) translate(0, 0) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) translate(var(--tx), var(--ty)) scale(0); }
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .btn {
+            background: transparent;
+            border: 1px solid #2a2a4a;
+            color: var(--text);
+            padding: 10px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.25s;
+        }
+        .btn:hover { border-color: var(--purple); background: var(--purple-dim); }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--purple), #5a1fd0);
+            border-color: var(--purple);
+        }
+        .btn-primary:hover { box-shadow: 0 0 20px rgba(123, 47, 247, 0.4); }
+
+        /* ===== EXPLAIN MODE ===== */
+        .explain-content {
+            max-width: 800px;
+            width: 100%;
+            line-height: 1.7;
+        }
+        .explain-content h2 {
+            font-family: Georgia, serif;
+            color: var(--gold);
+            font-size: 1.5rem;
+            margin: 32px 0 14px;
+        }
+        .explain-content h2:first-child { margin-top: 20px; }
+        .explain-content p {
+            color: var(--text-dim);
+            margin-bottom: 14px;
+        }
+        .explain-content strong { color: var(--text); }
+        .explain-content code {
+            background: var(--bg-card-area);
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: var(--purple-glow);
+        }
+
+        /* shuffle table visual */
+        .shuffle-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 14px 0 20px;
+            font-size: 0.9rem;
+        }
+        .shuffle-table th, .shuffle-table td {
+            padding: 10px 14px;
+            border: 1px solid #2a2a4a;
+            text-align: center;
+        }
+        .shuffle-table th {
+            background: var(--bg-surface);
+            color: var(--gold);
+            font-weight: 600;
+        }
+        .shuffle-table td { color: var(--text-dim); }
+        .shuffle-table .col-picked { background: rgba(255, 215, 0, 0.1); color: var(--gold); font-weight: 600; }
+        .shuffle-table .col-middle { background: rgba(123, 47, 247, 0.15); color: var(--purple-glow); }
+
+        /* convergence bars */
+        .convergence-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 14px 0 24px;
+        }
+        .conv-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .conv-label {
+            width: 80px;
+            text-align: right;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+        .conv-bar {
+            height: 28px;
+            border-radius: 6px;
+            background: linear-gradient(90deg, var(--purple), var(--purple-glow));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #fff;
+            transition: width 0.5s;
+        }
+
+        /* interactive tracker */
+        .tracker-card-row {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            margin: 10px 0 20px;
+            justify-content: center;
+        }
+        .tracker-pick {
+            width: 44px;
+            height: 60px;
+            border-radius: 5px;
+            border: 2px solid #2a2a4a;
+            background: var(--bg-card-area);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: Georgia, serif;
+            font-size: 0.7rem;
+            transition: all 0.2s;
+            color: var(--text-dim);
+        }
+        .tracker-pick:hover { border-color: var(--purple); }
+        .tracker-pick.active { border-color: var(--gold); background: rgba(255,215,0,0.08); color: var(--gold); }
+        .tracker-pick .t-suit { font-size: 1rem; }
+        .tracker-pick.t-red { color: var(--red-card); }
+        .tracker-pick.t-red.active { color: var(--red-card); }
+
+        .tracker-grids {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .tracker-stage {
+            text-align: center;
+        }
+        .tracker-stage-label {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            margin-bottom: 6px;
+        }
+        .mini-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 3px;
+        }
+        .mini-card {
+            width: 48px;
+            height: 34px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: Georgia, serif;
+            font-size: 0.65rem;
+            background: var(--bg-card-area);
+            border: 1px solid #2a2a4a;
+            color: var(--text-dim);
+            transition: all 0.3s;
+        }
+        .mini-card.m-red { color: var(--red-card); }
+        .mini-card.tracked {
+            border-color: var(--gold);
+            background: rgba(255, 215, 0, 0.12);
+            color: var(--gold) !important;
+            font-weight: 700;
+            box-shadow: 0 0 8px rgba(255, 215, 0, 0.2);
+        }
+        .mini-card.in-col {
+            background: rgba(123, 47, 247, 0.08);
+            border-color: rgba(123, 47, 247, 0.3);
+        }
+
+        /* ===== SIMULATOR MODE ===== */
+        .sim-controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .sim-controls label {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+        .sim-picker {
+            display: flex;
+            gap: 3px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin: 10px 0 16px;
+        }
+        .sim-pick-btn {
+            width: 36px;
+            height: 28px;
+            border-radius: 4px;
+            border: 1px solid #2a2a4a;
+            background: var(--bg-card-area);
+            color: var(--text-dim);
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .sim-pick-btn:hover { border-color: var(--purple); }
+        .sim-pick-btn.active {
+            border-color: var(--gold);
+            background: rgba(255,215,0,0.1);
+            color: var(--gold);
+            font-weight: 600;
+        }
+
+        /* all-cards summary table */
+        .summary-table {
+            width: 100%;
+            max-width: 700px;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            margin: 10px 0;
+        }
+        .summary-table th, .summary-table td {
+            padding: 6px 10px;
+            border: 1px solid #2a2a4a;
+            text-align: center;
+        }
+        .summary-table th {
+            background: var(--bg-surface);
+            color: var(--gold);
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        .summary-table td { color: var(--text-dim); }
+        .summary-table .pos-11 {
+            color: var(--gold);
+            font-weight: 700;
+            background: rgba(255, 215, 0, 0.08);
+        }
+
+        /* ===== FOOTER ===== */
+        footer {
+            margin-top: auto;
+            padding: 30px 20px;
+            text-align: center;
+            color: #444;
+            font-size: 0.8rem;
+        }
+        footer a { color: #666; text-decoration: none; }
+        footer a:hover { color: var(--purple-glow); }
+
+        /* ===== UTILITIES ===== */
+        @keyframes fade-in {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .fade-in { animation: fade-in 0.5s; }
+
+        @media (max-width: 640px) {
+            :root { --card-w: 58px; --card-h: 84px; }
+            .play-title { font-size: 1.6rem; }
+            .card-front .rank { font-size: 1rem; }
+            .card-front .suit { font-size: 1.3rem; }
+            .card-front .corner { font-size: 0.5rem; }
+            .column { padding: 10px 6px; gap: 4px; }
+            .columns-container { gap: 8px; }
+            .reveal-card-wrap .card { width: 96px; height: 136px; }
+            .mini-card { width: 38px; height: 28px; font-size: 0.55rem; }
+            .tracker-pick { width: 36px; height: 50px; font-size: 0.6rem; }
+            .tracker-pick .t-suit { font-size: 0.85rem; }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="logo">21 Cards</div>
+        <button class="active" data-mode="play">Play</button>
+        <button data-mode="explain">How It Works</button>
+        <button data-mode="simulate">Simulator</button>
+    </nav>
+
+    <section id="mode-play" class="active"></section>
+    <section id="mode-explain"></section>
+    <section id="mode-simulate"></section>
+
+    <footer>
+        &copy; Elias Bachaalany &mdash; <a href="https://github.com/lallousx86/21cards-trick">21 Cards Magic Trick</a>
+    </footer>
+
+<script>
+// ===== CORE ALGORITHM =====
+const ROWS = 7, COLS = 3, TOTAL = 21;
+const SHUFFLE_TABLE = [
+    [1, 0, 2], // col 0 -> middle
+    [0, 1, 2], // col 1 -> stays
+    [0, 2, 1]  // col 2 -> middle
+];
+
+function shuffleArray(col, arr) {
+    const out = [];
+    for (let t = 0; t < COLS; t++) {
+        const n = SHUFFLE_TABLE[col][t];
+        for (let i = 0; i < ROWS; i++) out.push(arr[n + i * COLS]);
+    }
+    return out;
+}
+
+// ===== CARD DATA =====
+const SUITS = ['\u2660', '\u2665', '\u2666']; // spades, hearts, diamonds
+const RANKS = ['A', '2', '3', '4', '5', '6', '7'];
+const CARDS = [];
+for (let s = 0; s < 3; s++)
+    for (let r = 0; r < 7; r++)
+        CARDS.push({ rank: RANKS[r], suit: SUITS[s], red: s > 0 });
+
+function cardName(idx) {
+    const c = CARDS[idx];
+    return `${c.rank}${c.suit}`;
+}
+function cardFullName(idx) {
+    const c = CARDS[idx];
+    const suitName = ['Spades', 'Hearts', 'Diamonds'][Math.floor(idx / 7)];
+    return `${c.rank === 'A' ? 'Ace' : c.rank} of ${suitName}`;
+}
+
+// ===== STATE =====
+let currentMode = 'play';
+let playState = null;
+let animBusy = false;
+
+// explain
+let trackerCard = 0;
+
+// simulate
+let simCard = -1; // -1 = all
+let simStep = 0;
+let simAutoPlay = false;
+let simTimer = null;
+
+// ===== DOM =====
+const sections = {
+    play: document.getElementById('mode-play'),
+    explain: document.getElementById('mode-explain'),
+    simulate: document.getElementById('mode-simulate')
+};
+
+// Nav
+document.querySelectorAll('nav button').forEach(btn => {
+    btn.addEventListener('click', () => {
+        if (btn.dataset.mode === currentMode) return;
+        currentMode = btn.dataset.mode;
+        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        Object.values(sections).forEach(s => s.classList.remove('active'));
+        sections[currentMode].classList.add('active');
+        render();
+    });
+});
+
+// ===== CARD HTML HELPERS =====
+function cardHTML(idx, extra = '') {
+    const c = CARDS[idx];
+    const cls = c.red ? 'red' : 'black';
+    return `<div class="card ${cls} ${extra}">
+        <div class="card-inner">
+            <div class="card-front">
+                <span class="corner corner-tl">${c.rank}<br>${c.suit}</span>
+                <span class="rank">${c.rank}</span>
+                <span class="suit">${c.suit}</span>
+                <span class="corner corner-br">${c.rank}<br>${c.suit}</span>
+            </div>
+            <div class="card-back"></div>
+        </div>
+    </div>`;
+}
+
+function miniCardHTML(idx, tracked, inCol) {
+    const c = CARDS[idx];
+    let cls = c.red ? 'm-red' : '';
+    if (tracked) cls += ' tracked';
+    if (inCol) cls += ' in-col';
+    return `<div class="mini-card ${cls}">${c.rank}${c.suit}</div>`;
+}
+
+// ===== PLAY MODE =====
+function freshDeck() {
+    const arr = Array.from({length: TOTAL}, (_, i) => i);
+    // Fisher-Yates shuffle
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
+
+function renderPlay() {
+    if (!playState) {
+        renderPlayIntro();
+    } else if (playState.phase === 'round') {
+        renderPlayRound();
+    } else if (playState.phase === 'reveal') {
+        renderPlayReveal();
+    }
+}
+
+function renderPlayIntro() {
+    sections.play.innerHTML = `
+        <div class="play-title">The 21 Cards Magic Trick</div>
+        <div class="play-subtitle">
+            Think of any card. I'll deal 21 cards into three columns.<br>
+            Just tell me which column your card is in &mdash; three times &mdash; and I'll reveal your card.
+        </div>
+        <button class="btn-begin" onclick="startPlay()">Begin the Trick</button>
+    `;
+}
+
+function startPlay() {
+    playState = { phase: 'round', round: 0, cards: freshDeck() };
+    renderPlay();
+}
+
+function renderPlayRound() {
+    const { round, cards } = playState;
+    let html = `
+        <div class="round-indicator">Round ${round + 1} of 3</div>
+        <div class="round-prompt">Which column is your card in?</div>
+        <div class="columns-container" id="play-columns">
+    `;
+    for (let col = 0; col < COLS; col++) {
+        html += `<div class="column" data-col="${col}" onclick="pickColumn(${col})">
+            <div class="column-label">Column ${col + 1}</div>`;
+        for (let row = 0; row < ROWS; row++) {
+            const i = col + row * COLS;
+            html += cardHTML(cards[i], `dealing`);
+        }
+        html += `</div>`;
+    }
+    html += `</div>`;
+    sections.play.innerHTML = html;
+
+    // set stagger indices
+    const allCards = sections.play.querySelectorAll('.card.dealing');
+    allCards.forEach((c, idx) => c.style.setProperty('--i', idx));
+}
+
+function pickColumn(col) {
+    if (animBusy) return;
+    animBusy = true;
+
+    const colEl = sections.play.querySelectorAll('.column')[col];
+    const container = document.getElementById('play-columns');
+
+    // Flash the selected column
+    colEl.classList.add('flash');
+    container.classList.add('disabled');
+
+    setTimeout(() => {
+        // Flip all cards face down
+        sections.play.querySelectorAll('.card').forEach(c => c.classList.add('face-down'));
+    }, 400);
+
+    setTimeout(() => {
+        // Shuffle
+        playState.cards = shuffleArray(col, playState.cards);
+        playState.round++;
+
+        if (playState.round < 3) {
+            playState.phase = 'round';
+            renderPlayRound();
+        } else {
+            playState.phase = 'reveal';
+            renderPlayReveal();
+        }
+        animBusy = false;
+    }, 1000);
+}
+
+function renderPlayReveal() {
+    const revealIdx = playState.cards[10]; // position 11 = index 10
+    const c = CARDS[revealIdx];
+
+    sections.play.innerHTML = `
+        <div class="reveal-container">
+            <div class="reveal-text">I know your card...</div>
+            <div class="reveal-card-wrap" id="reveal-wrap">
+                ${cardHTML(revealIdx, 'face-down')}
+                <div class="sparkles" id="sparkles"></div>
+            </div>
+            <div class="reveal-name" id="reveal-name" style="visibility:hidden">
+                Your card is the ${cardFullName(revealIdx)}
+            </div>
+            <div class="btn-row" id="reveal-btns" style="visibility:hidden">
+                <button class="btn btn-primary" onclick="playState=null;renderPlay()">Play Again</button>
+                <button class="btn" onclick="switchMode('explain')">How does it work?</button>
+            </div>
+        </div>
+    `;
+
+    // Flip reveal after delay
+    setTimeout(() => {
+        const card = sections.play.querySelector('.card');
+        card.classList.remove('face-down');
+        card.classList.add('revealed');
+        createSparkles();
+    }, 1500);
+
+    setTimeout(() => {
+        document.getElementById('reveal-name').style.visibility = 'visible';
+        document.getElementById('reveal-btns').style.visibility = 'visible';
+    }, 2200);
+}
+
+function createSparkles() {
+    const container = document.getElementById('sparkles');
+    if (!container) return;
+    for (let i = 0; i < 12; i++) {
+        const angle = (i / 12) * Math.PI * 2;
+        const dist = 60 + Math.random() * 30;
+        const sp = document.createElement('span');
+        sp.className = 'sparkle';
+        sp.style.setProperty('--tx', `${Math.cos(angle) * dist}px`);
+        sp.style.setProperty('--ty', `${Math.sin(angle) * dist}px`);
+        sp.style.setProperty('--d', `${i * 80}ms`);
+        container.appendChild(sp);
+    }
+}
+
+function switchMode(mode) {
+    currentMode = mode;
+    document.querySelectorAll('nav button').forEach(b => {
+        b.classList.toggle('active', b.dataset.mode === mode);
+    });
+    Object.values(sections).forEach(s => s.classList.remove('active'));
+    sections[mode].classList.add('active');
+    render();
+}
+
+// ===== EXPLAIN MODE =====
+function renderExplain() {
+    const orderedDeck = Array.from({length: TOTAL}, (_, i) => i);
+
+    let html = `<div class="explain-content">
+        <h2>The Trick</h2>
+        <p>Deal 21 cards face-up into <strong>3 columns of 7</strong>. Ask someone to think of a card and tell you which column it's in. Gather the columns, putting the chosen column <strong>in the middle</strong> of the pack. Re-deal into 3 columns. Repeat <strong>three times</strong>. The chosen card is now guaranteed to be <strong>card #11</strong> &mdash; the exact middle of the deck.</p>
+
+        <h2>Why Three Deals?</h2>
+        <p>Each time you place the chosen column in the middle and re-deal, the card's possible position <strong>narrows by a factor of ~3</strong>:</p>
+        <div class="convergence-bars">
+            <div class="conv-row"><span class="conv-label">Start</span><div class="conv-bar" style="width:100%">21 positions</div></div>
+            <div class="conv-row"><span class="conv-label">Round 1</span><div class="conv-bar" style="width:33%">7 positions</div></div>
+            <div class="conv-row"><span class="conv-label">Round 2</span><div class="conv-bar" style="width:14%">3</div></div>
+            <div class="conv-row"><span class="conv-label">Round 3</span><div class="conv-bar" style="width:5%">1</div></div>
+        </div>
+        <p>After round 2 the card is already pinned to row 4 of its column. The third deal exists so you can reveal it as the 11th card dealt (the middle card of the middle column).</p>
+
+        <h2>The Shuffle Table</h2>
+        <p>The key to the code is a 3-row lookup table. Given which column the spectator points to, it tells you the order to stack the three columns:</p>
+        <table class="shuffle-table">
+            <tr><th>Card is in...</th><th>Stack order</th><th>Result</th></tr>
+            <tr><td class="col-picked">Column 1 (left)</td><td>Col 2, <strong>Col 1</strong>, Col 3</td><td class="col-middle">Column 1 &rarr; middle</td></tr>
+            <tr><td class="col-picked">Column 2 (center)</td><td>Col 1, <strong>Col 2</strong>, Col 3</td><td class="col-middle">Already middle</td></tr>
+            <tr><td class="col-picked">Column 3 (right)</td><td>Col 1, <strong>Col 3</strong>, Col 2</td><td class="col-middle">Column 3 &rarr; middle</td></tr>
+        </table>
+        <p>In code: <code>SHUFFLE_TABLE = [[1,0,2], [0,1,2], [0,2,1]]</code>. Every row places the picked column at index 1 (the middle). That single invariant is the entire magic.</p>
+
+        <h2>The Shuffle Function</h2>
+        <p>The deck is a flat array of 21 elements in row-major order. Position <code>col + row*3</code> is "row <em>row</em>, column <em>col</em>." The function reads each stacked column top-to-bottom, rebuilding the deck as: all of stacked-column-1, then stacked-column-2, then stacked-column-3. This matches physically gathering one column on top of another.</p>
+
+        <h2>Interactive Tracker</h2>
+        <p>Pick any card below to watch it converge to position 11 across three rounds:</p>
+        <div class="tracker-card-row" id="tracker-picks"></div>
+        <div id="tracker-grids"></div>
+    </div>`;
+
+    sections.explain.innerHTML = html;
+    renderTrackerPicks();
+    renderTrackerGrids();
+}
+
+function renderTrackerPicks() {
+    const container = document.getElementById('tracker-picks');
+    let html = '';
+    for (let i = 0; i < TOTAL; i++) {
+        const c = CARDS[i];
+        const active = i === trackerCard ? 'active' : '';
+        const red = c.red ? 't-red' : '';
+        html += `<div class="tracker-pick ${active} ${red}" onclick="trackerCard=${i};renderTrackerPicks();renderTrackerGrids()">
+            <span>${c.rank}</span><span class="t-suit">${c.suit}</span>
+        </div>`;
+    }
+    container.innerHTML = html;
+}
+
+function renderTrackerGrids() {
+    const container = document.getElementById('tracker-grids');
+    let cards = Array.from({length: TOTAL}, (_, i) => i);
+    const stages = [cards.slice()];
+    const cols = [];
+
+    for (let r = 0; r < 3; r++) {
+        const col = cards.indexOf(trackerCard) % COLS;
+        cols.push(col);
+        cards = shuffleArray(col, cards);
+        stages.push(cards.slice());
+    }
+
+    const labels = ['Initial', 'After Round 1', 'After Round 2', 'After Round 3'];
+    let html = '<div class="tracker-grids">';
+    for (let s = 0; s < 4; s++) {
+        const colOfTracked = stages[s].indexOf(trackerCard) % COLS;
+        html += `<div class="tracker-stage"><div class="tracker-stage-label">${labels[s]}</div><div class="mini-grid">`;
+        for (let row = 0; row < ROWS; row++) {
+            for (let col = 0; col < COLS; col++) {
+                const idx = col + row * COLS;
+                const cardIdx = stages[s][idx];
+                const tracked = cardIdx === trackerCard;
+                const inCol = col === colOfTracked && !tracked;
+                html += miniCardHTML(cardIdx, tracked, inCol);
+            }
+        }
+        html += `</div></div>`;
+    }
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+// ===== SIMULATOR MODE =====
+function renderSimulate() {
+    let html = `
+        <div style="text-align:center;margin-top:16px">
+            <div style="font-family:Georgia,serif;font-size:1.3rem;color:var(--gold);margin-bottom:8px">Convergence Simulator</div>
+            <p style="color:var(--text-dim);font-size:0.9rem;margin-bottom:12px">Watch every card converge to position 11 after three rounds.</p>
+        </div>
+        <div class="sim-controls">
+            <label>Track card:</label>
+            <div class="sim-picker" id="sim-picker"></div>
+        </div>
+        <div class="sim-controls" id="sim-step-controls"></div>
+        <div id="sim-output"></div>
+    `;
+    sections.simulate.innerHTML = html;
+    renderSimPicker();
+    renderSimControls();
+    renderSimOutput();
+}
+
+function renderSimPicker() {
+    const container = document.getElementById('sim-picker');
+    let html = `<button class="sim-pick-btn ${simCard === -1 ? 'active' : ''}" onclick="setSimCard(-1)">All</button>`;
+    for (let i = 0; i < TOTAL; i++) {
+        html += `<button class="sim-pick-btn ${simCard === i ? 'active' : ''}" onclick="setSimCard(${i})">${cardName(i)}</button>`;
+    }
+    container.innerHTML = html;
+}
+
+function setSimCard(c) {
+    simCard = c;
+    simStep = 0;
+    stopSimAuto();
+    renderSimPicker();
+    renderSimControls();
+    renderSimOutput();
+}
+
+function renderSimControls() {
+    const container = document.getElementById('sim-step-controls');
+    if (simCard === -1) {
+        container.innerHTML = '';
+        return;
+    }
+    container.innerHTML = `
+        <button class="btn" onclick="simStep=0;renderSimOutput()">Reset</button>
+        <button class="btn" onclick="simStepFwd()">Step</button>
+        <button class="btn ${simAutoPlay ? 'btn-primary' : ''}" onclick="toggleSimAuto()">${simAutoPlay ? 'Stop' : 'Auto-play'}</button>
+        <span style="color:var(--text-dim);font-size:0.85rem;margin-left:8px">Step ${simStep}/3</span>
+    `;
+}
+
+function simStepFwd() {
+    if (simStep < 3) { simStep++; renderSimControls(); renderSimOutput(); }
+}
+
+function toggleSimAuto() {
+    if (simAutoPlay) { stopSimAuto(); return; }
+    simAutoPlay = true;
+    simStep = 0;
+    renderSimControls();
+    renderSimOutput();
+    simTimer = setInterval(() => {
+        if (simStep >= 3) { stopSimAuto(); return; }
+        simStep++;
+        renderSimControls();
+        renderSimOutput();
+    }, 1500);
+}
+
+function stopSimAuto() {
+    simAutoPlay = false;
+    if (simTimer) { clearInterval(simTimer); simTimer = null; }
+    renderSimControls();
+}
+
+function renderSimOutput() {
+    const container = document.getElementById('sim-output');
+    if (simCard === -1) {
+        renderSimAll(container);
+    } else {
+        renderSimSingle(container);
+    }
+}
+
+function renderSimAll(container) {
+    let html = `<table class="summary-table"><tr>
+        <th>Card</th><th>Start Pos</th>
+        <th>After R1</th><th>After R2</th><th>Final Pos</th>
+    </tr>`;
+
+    for (let pick = 0; pick < TOTAL; pick++) {
+        let cards = Array.from({length: TOTAL}, (_, i) => i);
+        const positions = [cards.indexOf(pick) + 1];
+        for (let r = 0; r < 3; r++) {
+            const col = cards.indexOf(pick) % COLS;
+            cards = shuffleArray(col, cards);
+            positions.push(cards.indexOf(pick) + 1);
+        }
+        const c = CARDS[pick];
+        html += `<tr>
+            <td style="color:${c.red ? 'var(--red-card)' : 'var(--text)'};font-family:Georgia,serif">${cardName(pick)}</td>
+            <td>${positions[0]}</td>
+            <td>${positions[1]}</td>
+            <td>${positions[2]}</td>
+            <td class="pos-11">${positions[3]}</td>
+        </tr>`;
+    }
+    html += '</table>';
+    container.innerHTML = html;
+}
+
+function renderSimSingle(container) {
+    let cards = Array.from({length: TOTAL}, (_, i) => i);
+    const stages = [cards.slice()];
+    for (let r = 0; r < simStep; r++) {
+        const col = cards.indexOf(simCard) % COLS;
+        cards = shuffleArray(col, cards);
+        stages.push(cards.slice());
+    }
+
+    const labels = ['Initial', 'After Round 1', 'After Round 2', 'After Round 3'];
+    let html = '<div class="tracker-grids">';
+    for (let s = 0; s <= simStep; s++) {
+        const colOfTracked = stages[s].indexOf(simCard) % COLS;
+        html += `<div class="tracker-stage fade-in"><div class="tracker-stage-label">${labels[s]}</div><div class="mini-grid">`;
+        for (let row = 0; row < ROWS; row++) {
+            for (let col = 0; col < COLS; col++) {
+                const idx = col + row * COLS;
+                const cardIdx = stages[s][idx];
+                const tracked = cardIdx === simCard;
+                const inCol = col === colOfTracked && !tracked;
+                html += miniCardHTML(cardIdx, tracked, inCol);
+            }
+        }
+        html += `</div></div>`;
+    }
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+// ===== RENDER =====
+function render() {
+    switch (currentMode) {
+        case 'play': renderPlay(); break;
+        case 'explain': renderExplain(); break;
+        case 'simulate': renderSimulate(); break;
+    }
+}
+
+// Initial render
+render();
+</script>
+</body>
+</html>
