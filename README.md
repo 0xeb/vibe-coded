@@ -13,6 +13,7 @@ A collection of educational games, interactive applications, and productivity to
 - **[Piano Kids](games/piano-kids/)** - Educational piano for children (HTML5 standalone)
 - **[Sliding Puzzle](games/sliding-puzzle/)** - Number sliding puzzle with auto-solver (HTML5 standalone)
 - **[21 Cards Trick](games/21cards-trick/)** - Interactive card magic trick with math explainer (HTML5 standalone)
+- **[Zbala](games/zbala/)** - Satirical trash-tossing arcade game (HTML5 with assets)
 
 ### 🎵 Music
 - **[Win32 Happy Birthday](music/win32_happy_birthday/)** - Windows MIDI player in C

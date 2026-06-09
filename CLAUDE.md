@@ -17,7 +17,8 @@ vibe-coded/
 │   ├── piano-kids/         # HTML5 standalone
 │   ├── sliding-puzzle/     # HTML5 standalone
 │   ├── click-trainer/      # HTML5 standalone
-│   └── 21cards-trick/      # HTML5 standalone
+│   ├── 21cards-trick/      # HTML5 standalone
+│   └── zbala/              # HTML5 with sprite assets
 ├── music/
 │   └── win32_happy_birthday/  # C with WinMM (Windows only)
 └── productivity/
